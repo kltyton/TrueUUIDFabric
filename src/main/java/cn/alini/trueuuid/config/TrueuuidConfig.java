@@ -1,7 +1,7 @@
 package cn.alini.trueuuid.config;
 
 
-import net.neoforged.fml.ModLoadingContext;
+import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -16,7 +16,7 @@ public final class TrueuuidConfig {
     }
 
     public static void register() {
-        ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.COMMON, COMMON_SPEC);
+        NeoForgeConfigRegistry.INSTANCE.register("trueuuid", ModConfig.Type.COMMON, TrueuuidConfig.COMMON_SPEC);
     }
 
     public static long timeoutMs() { return COMMON.timeoutMs.get(); }

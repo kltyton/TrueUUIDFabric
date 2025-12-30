@@ -1,31 +1,30 @@
 package cn.alini.trueuuid;
 
+import cn.alini.trueuuid.command.TrueuuidCommands;
 import com.mojang.logging.LogUtils;
 import cn.alini.trueuuid.config.TrueuuidConfig;
 import cn.alini.trueuuid.server.TrueuuidRuntime;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.config.ModConfigEvent;
+import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeModConfigEvents;
+import net.fabricmc.api.ModInitializer;
+import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
 
-@Mod(Trueuuid.MODID)
-public class Trueuuid {
+
+public class Trueuuid implements ModInitializer {
+
     public static final String MODID = "trueuuid";
     private static final Logger LOGGER = LogUtils.getLogger();
-
-    public Trueuuid(IEventBus modBus) {
+    @Override
+    public void onInitialize() {
         // 注册并生成 config/trueuuid-common.toml
         TrueuuidConfig.register();
-
         // 初始化运行时单例（注册表、最近 IP 容错缓存等）
         TrueuuidRuntime.init();
-
-        modBus.addListener(this::onConfigLoad);
-
+        TrueuuidCommands.register();
+        NeoForgeModConfigEvents.loading(MODID).register(this::onConfigLoad);
         LOGGER.info("TrueUUID 已经加载");
     }
-
-    private void onConfigLoad(ModConfigEvent.Loading event) {
+    private void onConfigLoad(ModConfig modConfig) {
         // =====MoJang网络连通性测试=====
         // 若开启 nomojang，则跳过启动时的 Mojang 网络连通性检测
         if (TrueuuidConfig.nomojangEnabled()) {

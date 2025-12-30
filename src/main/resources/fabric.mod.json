@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "trueuuid",
+  "version": "${version}",
+  "name": "TrueUUID",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/trueuuid/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "cn.alini.trueuuid.client.TrueuuidClient"
+    ],
+    "main": [
+      "cn.alini.trueuuid.Trueuuid"
+    ]
+  },
+  "mixins": [
+    "trueuuid.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  },
+  "accessWidener": "kltyton.accesswidener"
+}

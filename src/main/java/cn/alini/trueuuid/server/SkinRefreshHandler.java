@@ -2,6 +2,7 @@ package cn.alini.trueuuid.server;
 
 import cn.alini.trueuuid.Trueuuid;
 import cn.alini.trueuuid.config.TrueuuidConfig;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
@@ -9,25 +10,25 @@ import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 import java.util.List;
 
 /**
  * 登录后刷新外观，并在“离线放行”时提示玩家；同时显示屏幕标题提示当前模式。
  */
-@EventBusSubscriber(modid = Trueuuid.MODID)
 public class SkinRefreshHandler {
     private static final int SUBTITLE_MAX_CHARS = 64; // 保护：过长截断，避免越界
+    // 在你的 ModInitializer 中调用此方法
+    public static void register() {
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            onLogin(handler.player, server, handler);
+        });
+    }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer sp)) return;
-        var server = sp.getServer();
+    public static void onLogin(ServerPlayer sp, MinecraftServer server, ServerGamePacketListenerImpl handler) {
         if (server == null) return;
 
         // 1) 登录后一帧刷新外观（强制客户端重拉皮肤）
@@ -38,7 +39,7 @@ public class SkinRefreshHandler {
         });
 
         // 2) 判断是否离线放行，并发送聊天提示 + 屏幕标题（副标题使用短文案）
-        var netConn = sp.connection.getConnection(); // ServerGamePacketListenerImpl.connection
+        var netConn = handler.connection; // ServerGamePacketListenerImpl.connection
         var fallbackOpt = AuthState.consume(netConn);
 
         if (fallbackOpt.isPresent()) {

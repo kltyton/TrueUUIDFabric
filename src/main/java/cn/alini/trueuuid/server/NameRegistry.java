@@ -1,7 +1,7 @@
 package cn.alini.trueuuid.server;
 
 import com.google.gson.*;
-import net.neoforged.fml.loading.FMLPaths;
+import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.Reader;
 import java.io.Writer;
@@ -23,7 +23,7 @@ public class NameRegistry {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public NameRegistry() {
-        this.file = FMLPaths.CONFIGDIR.get().resolve("trueuuid-registry.json");
+        this.file = FabricLoader.getInstance().getConfigDir().resolve("trueuuid-registry.json");
         load();
     }
 
@@ -65,7 +65,7 @@ public class NameRegistry {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
     }
 
@@ -90,7 +90,7 @@ public class NameRegistry {
                 gson.toJson(o, w);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
     }
 }

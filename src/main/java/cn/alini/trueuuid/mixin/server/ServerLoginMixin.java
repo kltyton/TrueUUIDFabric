@@ -5,13 +5,10 @@ import cn.alini.trueuuid.config.TrueuuidConfig;
 import cn.alini.trueuuid.net.AuthAnswerPayload;
 import cn.alini.trueuuid.net.AuthPayload;
 import cn.alini.trueuuid.net.AuthQueryTracker;
-import cn.alini.trueuuid.net.NetIds;
 import cn.alini.trueuuid.server.*;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import io.netty.buffer.Unpooled;
 import net.minecraft.network.Connection;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundDisconnectPacket;
 import net.minecraft.network.protocol.login.ClientboundCustomQueryPacket;
@@ -20,6 +17,7 @@ import net.minecraft.network.protocol.login.ServerboundCustomQueryAnswerPacket;
 import net.minecraft.network.protocol.login.ServerboundHelloPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -28,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,8 +33,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Mixin(ServerLoginPacketListenerImpl.class)
 public abstract class ServerLoginMixin {
     @Shadow private GameProfile authenticatedProfile;
-    @Shadow private MinecraftServer server;
-    @Shadow private Connection connection;
+    @Final
+    @Shadow
+    MinecraftServer server;
+    @Final
+    @Shadow
+    Connection connection;
 
     @Shadow public abstract void disconnect(Component reason);
 
@@ -77,8 +78,7 @@ public abstract class ServerLoginMixin {
                         if (TrueuuidConfig.debug()) {
                             System.out.println("[TrueUUID] nomojang: 找到同IP正版记录，按正版处理, uuid=" + premium);
                         }
-                        GameProfile newProfile = new GameProfile(premium, name);
-                        this.authenticatedProfile = newProfile;
+                        this.authenticatedProfile = new GameProfile(premium, name);
                         // 记录成功（保持注册表/缓存一致）
                         TrueuuidRuntime.NAME_REGISTRY.recordSuccess(name, premium, ip);
                         TrueuuidRuntime.IP_GRACE.record(name, ip, premium);

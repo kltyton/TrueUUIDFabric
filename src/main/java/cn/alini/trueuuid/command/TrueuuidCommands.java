@@ -7,6 +7,8 @@ import cn.alini.trueuuid.server.TrueuuidRuntime;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.nbt.NbtAccounter;
@@ -31,17 +33,14 @@ import java.io.Reader;
 import java.io.Writer;
 
 import com.google.gson.*;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-@EventBusSubscriber(modid = Trueuuid.MODID)
 public class TrueuuidCommands {
-
-    @SubscribeEvent
-    public static void onRegister(RegisterCommandsEvent e) {
-        CommandDispatcher<CommandSourceStack> d = e.getDispatcher();
+    public static void register() {
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            TrueuuidCommands.onRegister(dispatcher);
+        });
+    }
+    public static void onRegister(CommandDispatcher<CommandSourceStack> d) {
         d.register(Commands.literal("trueuuid")
                 .requires(src -> src.hasPermission(3))
                 // 新增：/trueuuid mojang status
@@ -95,7 +94,7 @@ public class TrueuuidCommands {
     // 新增方法：runtime 从磁盘重载配置并将值写入 TrueuuidConfig.COMMON
     private static int cmdConfigReload(CommandSourceStack src) {
         try {
-            Path cfgPath = FMLPaths.CONFIGDIR.get().resolve("trueuuid-common.toml");
+            Path cfgPath = FabricLoader.getInstance().getConfigDir().resolve("trueuuid-common.toml");
             CommentedFileConfig cfg = CommentedFileConfig.builder(cfgPath)
                     .sync() // 与磁盘保持同步
                     .autosave()
